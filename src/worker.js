@@ -9,19 +9,19 @@
 import { analyzeSentence, extractFeatures, ready, splitSentences } from "./pipeline.js";
 
 const OPS = {
-  init: ({ siteBaseUrl }) => ready(siteBaseUrl),
-  split: ({ text }) => splitSentences(text),
-  sentence: ({ words }) => analyzeSentence(words),
-  features: ({ sentences }) => extractFeatures(sentences),
+    init: ({ siteBaseUrl }) => ready(siteBaseUrl),
+    split: ({ text }) => splitSentences(text),
+    sentence: ({ words }) => analyzeSentence(words),
+    features: ({ sentences }) => extractFeatures(sentences),
 };
 
 self.onmessage = async (event) => {
-  const { id, op, args } = event.data;
-  try {
-    const handler = OPS[op];
-    if (!handler) throw new Error(`unknown op ${op}`);
-    self.postMessage({ id, result: await handler(args) });
-  } catch (e) {
-    self.postMessage({ id, error: String(e) });
-  }
+    const { id, op, args } = event.data;
+    try {
+        const handler = OPS[op];
+        if (!handler) throw new Error(`unknown op ${op}`);
+        self.postMessage({ id, result: await handler(args) });
+    } catch (e) {
+        self.postMessage({ id, error: String(e) });
+    }
 };

@@ -15,7 +15,7 @@ const MAX_WORDS = 100;
 // a fresh export, put it in public/model/ and run with VITE_MODEL_URL=model/
 // (resolved against the site base URL).
 const MODEL_URL = import.meta.env.VITE_MODEL_URL ||
-  "https://huggingface.co/shonenash/electra-small-tagger-parser/resolve/0e02dd467eb493f1cb6dde2ff7307898dd951275/";
+    "https://huggingface.co/shonenash/electra-small-tagger-parser/resolve/0e02dd467eb493f1cb6dde2ff7307898dd951275/";
 
 const parser = new Parser();
 const lemmatizer = new Lemmatizer();
@@ -27,11 +27,11 @@ let loading = null;
 // the page itself. Resolves once everything is loaded; after a failure, the
 // next call retries.
 export function ready(siteBaseUrl) {
-  loading ??= Promise.all([
-    parser.init(new URL(MODEL_URL, siteBaseUrl).href, new URL("ort/", siteBaseUrl).href),
-    lemmatizer.init(new URL("data/en_lemma_data.json", siteBaseUrl).href),
-  ]).catch((e) => { loading = null; throw e; });
-  return loading;
+    loading ??= Promise.all([
+        parser.init(new URL(MODEL_URL, siteBaseUrl).href, new URL("ort/", siteBaseUrl).href),
+        lemmatizer.init(new URL("data/en_lemma_data.json", siteBaseUrl).href),
+    ]).catch((e) => { loading = null; throw e; });
+    return loading;
 }
 
 // The steps of analyze(), exported separately so a pool of workers can split
@@ -43,16 +43,16 @@ export { splitSentences };
 // or null if it is too short or too long to parse. pos holds Penn tags and
 // upos spaCy's coarse POS. heads are 1-based word indices, with 0 meaning ROOT.
 export async function analyzeSentence(words) {
-  if (!loading) throw new Error("analyzeSentence() called before ready()");
-  await loading;
-  if (words.length < MIN_WORDS || words.length > MAX_WORDS) return null;
-  const r = await parser.parse(words);
-  if (!r) return null;
-  const attrs = applyAttributeRules(r.words, r.pos, r.deps);
-  r.upos = attrs.pos;
-  // As in spaCy, a lemma set by the attribute ruler wins over the lemmatizer.
-  r.lemmas = r.words.map((w, i) => attrs.lemmas[i] ?? lemmatizer.lemmatize(w, attrs.pos[i], attrs.morphs[i]));
-  return r;
+    if (!loading) throw new Error("analyzeSentence() called before ready()");
+    await loading;
+    if (words.length < MIN_WORDS || words.length > MAX_WORDS) return null;
+    const r = await parser.parse(words);
+    if (!r) return null;
+    const attrs = applyAttributeRules(r.words, r.pos, r.deps);
+    r.upos = attrs.pos;
+    // As in spaCy, a lemma set by the attribute ruler wins over the lemmatizer.
+    r.lemmas = r.words.map((w, i) => attrs.lemmas[i] ?? lemmatizer.lemmatize(w, attrs.pos[i], attrs.morphs[i]));
+    return r;
 }
 
 // Returns {
@@ -64,16 +64,16 @@ export async function analyzeSentence(words) {
 // The text is treated as one document. onProgress(done, total), if given, is
 // called after each sentence.
 export async function analyze(text, onProgress) {
-  const all = splitSentences(text);
-  const sentences = [];
-  let skipped = 0;
-  for (const [k, words] of all.entries()) {
-    const r = await analyzeSentence(words);
-    onProgress?.(k + 1, all.length);
-    if (r) sentences.push(r);
-    else skipped++;
-  }
-  return { sentences, ...extractFeatures(sentences), skipped };
+    const all = splitSentences(text);
+    const sentences = [];
+    let skipped = 0;
+    for (const [k, words] of all.entries()) {
+        const r = await analyzeSentence(words);
+        onProgress?.(k + 1, all.length);
+        if (r) sentences.push(r);
+        else skipped++;
+    }
+    return { sentences, ...extractFeatures(sentences), skipped };
 }
 
 // analyzeSentence() results -> {
@@ -81,12 +81,12 @@ export async function analyze(text, onProgress) {
 //   dimensions: dimensionProfile() result or null,
 // }
 export function extractFeatures(sentences) {
-  if (sentences.length === 0) return { features: {}, dimensions: null };
-  const table = TokenTable.buildTable([{ sentences }]);
-  const counts = biber(table, { normalize: false });
-  const rates = biber(table);
-  const features = Object.fromEntries(
-    Object.keys(counts).map((name) => [name, { count: counts[name][0], per1000: rates[name][0] }]),
-  );
-  return { features, dimensions: dimensionProfile(sentences, features) };
+    if (sentences.length === 0) return { features: {}, dimensions: null };
+    const table = TokenTable.buildTable([{ sentences }]);
+    const counts = biber(table, { normalize: false });
+    const rates = biber(table);
+    const features = Object.fromEntries(
+        Object.keys(counts).map((name) => [name, { count: counts[name][0], per1000: rates[name][0] }]),
+    );
+    return { features, dimensions: dimensionProfile(sentences, features) };
 }
